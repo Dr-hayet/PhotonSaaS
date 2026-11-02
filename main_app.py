@@ -224,7 +224,7 @@ else:
     def generate_live_dataframe():
         output_files = [f for f in os.listdir('.') if (f.endswith('.log') or f.endswith('.out') or f.endswith('.txt') or f.endswith('.dat'))]
         if not output_files:
-            return pd.DataFrame(), 0, "No calculation files (.log, .out, .txt, .dat) found in the directory."
+            return pd.DataFrame(), 0, "No calculation files (.log, .out, .txt, .dat) found in the directory. Please upload your files above."
 
         data_rows = []
         processed_count = 0
@@ -790,8 +790,7 @@ else:
             )
 
             st.markdown("---")
-
-            # --- GaussView-Style Molecular Sketcher & Job Runner ---
+# --- GaussView-Style Molecular Sketcher & Job Runner ---
             st.subheader("🎨 Interactive Molecular Sketcher & Quantum Job Runner (GaussView-Style)")
             st.markdown("Design molecular structures, configure computational methods, generate input files (`.gjf`), and **execute cloud calculations** to instantly produce parsed `.out` results.")
 
@@ -1359,7 +1358,6 @@ Normal termination of PhotonSaaS Quantum Engine at {end_datetime_str}.
                     )
                     st.text_area("Patent Draft Output", patent_draft_text, height=250)
                    
-                    # زر تحميل كملف نصي كما طلبته سابقاً
                     st.download_button(
                         label="📥 Download Official Patent Claim Draft (.txt)",
                         data=patent_draft_text,
@@ -1367,7 +1365,6 @@ Normal termination of PhotonSaaS Quantum Engine at {end_datetime_str}.
                         mime="text/plain"
                     )
 
-                    # --- دالة وجرين لتنزيل براءة الاختراع بصيغة PDF بناءً على طلبك الجديد ---
                     def create_patent_pdf_report(draft_text, inv_name, company_name):
                         buffer = io.BytesIO()
                         doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=35, leftMargin=35, topMargin=35, bottomMargin=35)
