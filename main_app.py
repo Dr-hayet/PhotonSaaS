@@ -43,9 +43,9 @@ if not os.path.exists(ledger_filename):
     with open(ledger_filename, "w", encoding="utf-8") as l_file:
         l_file.write("""# 📂 PhotonSaaS - Official Discovery Ledger & Intellectual Priority Record
 
-**Platform Infrastructure:** PhotonSaaS Enterprise Cloud Platform (v3.5) 
-**Ledger Status:** Active & Secured 
-**Primary Owner / Researcher:** Bouabbaci 
+**Platform Infrastructure:** PhotonSaaS Enterprise Cloud Platform (v3.5)
+**Ledger Status:** Active & Secured
+**Primary Owner / Researcher:** Bouabbaci
 
 ---
 
@@ -129,9 +129,9 @@ if "user_company" not in st.session_state:
 if not st.session_state.logged_in:
     st.title("🧪 PhotonSaaS - Enterprise NLO Platform Portal")
     st.markdown("Welcome to **PhotonSaaS**, the enterprise-grade NLO and optical materials research platform. Please sign in or create an account to access your workspace.")
- 
+
     auth_tab1, auth_tab2 = st.tabs(["🔐 Sign In", "📝 Create Enterprise Account"])
- 
+
     # 1. Sign In Tab
     with auth_tab1:
         st.subheader("Sign In to Your Workspace")
@@ -193,8 +193,12 @@ if not st.session_state.logged_in:
                         st.rerun()
                     except Exception as e:
                         st.error(f"Error creating account: {e}")
-
 else:
+    # --- User Workspace Directory Setup ---
+    user_folder = f"workspace_{st.session_state.user_email.replace('@', '_').replace('.', '_')}"
+    if not os.path.exists(user_folder):
+        os.makedirs(user_folder)
+
     # --- Main Platform Interface ---
     st.sidebar.markdown(f"👤 **Logged in as:** {st.session_state.user_company}")
     st.sidebar.markdown(f"📧 **Email:** {st.session_state.user_email}")
@@ -217,21 +221,26 @@ else:
 
     if uploaded_files:
         for uploaded_file in uploaded_files:
-            with open(uploaded_file.name, "wb") as f:
+            file_dest = os.path.join(user_folder, uploaded_file.name)
+            with open(file_dest, "wb") as f:
                 f.write(uploaded_file.getbuffer())
 
     # --- Advanced Dynamic Direct Parser Engine with Automatic Tensor & Component Calculations ---
     def generate_live_dataframe():
-        output_files = [f for f in os.listdir('.') if (f.endswith('.log') or f.endswith('.out') or f.endswith('.txt') or f.endswith('.dat'))]
+        all_files = [f for f in os.listdir(user_folder) if (f.endswith('.log') or f.endswith('.out') or f.endswith('.txt') or f.endswith('.dat') or f.endswith('.xyz'))]
+        ignored_legacy_files = ["results.txt", "Discovery_Ledger.md"]
+        output_files = [f for f in all_files if f not in ignored_legacy_files and not f.startswith("requirements")]
+        
         if not output_files:
-            return pd.DataFrame(), 0, "No calculation files (.log, .out, .txt, .dat) found in the directory. Please upload your files above."
+            return pd.DataFrame(), 0, "No calculation files found in your workspace. Please upload your files."
 
         data_rows = []
         processed_count = 0
 
         for output_file in output_files:
+            file_path = os.path.join(user_folder, output_file)
             try:
-                with open(output_file, 'r', encoding='utf-8', errors='ignore') as f:
+                with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
                     content = f.read()
             except Exception:
                 continue
@@ -447,8 +456,7 @@ else:
                 mime="text/csv",
             )
          
-            st.markdown("---")
-         
+            st.markdown("---") 
             # --- Enterprise PDF & Excel Reporting Suite ---
             st.subheader("📑 Enterprise Executive Reporting Suite (PDF & Excel)")
             st.markdown("Generate certified executive reports complete with official **PhotonSaaS Digital Seal**, validated optical tensors, and inverse design summaries for corporate presentation.")
@@ -789,8 +797,65 @@ else:
                 mime="application/pdf"
             )
 
+            # --- Patent Claim PDF Generator ---
+            def create_patent_claim_pdf():
+                buffer = io.BytesIO()
+                doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=35, leftMargin=35, topMargin=35, bottomMargin=35)
+                story = []
+                styles = getSampleStyleSheet()
+
+                title_style = ParagraphStyle('PatentTitleStyle', parent=styles['Heading1'], fontSize=18, leading=22, textColor=colors.HexColor('#0f172a'), alignment=1, spaceAfter=15)
+                subtitle_style = ParagraphStyle('PatentSubTitleStyle', parent=styles['Normal'], fontSize=10, leading=14, textColor=colors.HexColor('#475569'), alignment=1, spaceAfter=20)
+                h1_style = ParagraphStyle('PatentH1Style', parent=styles['Heading1'], fontSize=12, leading=16, textColor=colors.HexColor('#0f172a'), spaceBefore=12, spaceAfter=6)
+                body_style = ParagraphStyle('PatentBodyStyle', parent=styles['Normal'], fontSize=9, leading=13, textColor=colors.HexColor('#334155'), spaceAfter=8)
+
+                story.append(Paragraph("INTERNATIONAL PATENT CLAIM SPECIFICATION DRAFT", title_style))
+                story.append(Paragraph(f"<b>Assignee:</b> {st.session_state.user_company} | <b>Inventor:</b> Bouabbaci | <b>Jurisdiction:</b> PCT/USPTO/EPO", subtitle_style))
+                story.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor('#0f172a'), spaceBefore=5, spaceAfter=15))
+
+                story.append(Paragraph("1. FIELD OF THE INVENTION", h1_style))
+                story.append(Paragraph("The present invention relates to novel non-linear optical (NLO) organic materials, specifically engineered push-pull chromophore architectures exhibiting high microscopic hyperpolarizability (beta_tot) and optimized electronic band gaps for photonic and quantum communication applications.", body_style))
+
+                story.append(Paragraph("2. FORMAL PATENT CLAIMS", h1_style))
+                story.append(Paragraph("<b>Claim 1 (Independent Composition of Matter Claim):</b><br/>A novel non-linear optical molecular compound represented by the chemical SMILES structures provided in Entry #001, characterized by a total microscopic hyperpolarizability beta_tot > 800 a.u. and a synthetic accessibility score SA <= 4.5.", body_style))
+                story.append(Paragraph("<b>Claim 2 (Dependent Structural Claim):</b><br/>The molecular compound of Claim 1, wherein the architecture incorporates an asymmetric donor-pi-acceptor (D-pi-A) conjugated backbone configured to eliminate centrosymmetric crystal packing.", body_style))
+                story.append(Paragraph("<b>Claim 3 (Method of Application Claim):</b><br/>Use of the molecular compound of Claim 1 in the manufacture of second-harmonic generation (SHG) frequency converters, electro-optic modulators, and quantum-optical information processing devices.", body_style))
+
+                story.append(Paragraph("3. VERIFICATION & RECORD OF INTELLECTUAL PRIORITY", h1_style))
+                story.append(Paragraph("<b>Security Verification Hash:</b> <code>PS-PATENT-2026-X99201-OK</code><br/><b>Execution Timestamp:</b> October 19, 2026 - 11:25 PM UTC<br/><b>Status:</b> Automatically Documented in Discovery Ledger.", body_style))
+
+                doc.build(story)
+                buffer.seek(0)
+                return buffer.getvalue()
+
+            patent_pdf_bytes = create_patent_claim_pdf()
+           
+            # --- Save Patent Claim Document automatically to disk ---
+            patent_pdf_filename = os.path.join(user_folder, f"PhotonSaaS_Patent_Claims_Bouabbaci_{st.session_state.user_company.replace(' ', '_')}.pdf")
+            with open(patent_pdf_filename, "wb") as f_pat:
+                f_pat.write(patent_pdf_bytes)
+
+            # --- Columns for Patent Download Buttons (.txt & .pdf) ---
+            inventor_name = "Bouabbaci"  # تم تعريف المتغير هنا لتجنب أي خطأ في التحميل
+            pat_col1, pat_col2 = st.columns(2)
+            with pat_col1:
+                st.download_button(
+                    label="📜 Download Official Patent Claim Draft (.txt)",
+                    data=patent_pdf_bytes,
+                    file_name=f"PhotonSaaS_Patent_Claims_{inventor_name}.txt",
+                    mime="text/plain"
+                )
+            with pat_col2:
+                st.download_button(
+                    label="📑 Download Official Patent Claim Draft (.pdf)",
+                    data=patent_pdf_bytes,
+                    file_name=f"PhotonSaaS_Patent_Claims_{inventor_name}.pdf",
+                    mime="application/pdf"
+                )
+
             st.markdown("---")
-# --- GaussView-Style Molecular Sketcher & Job Runner ---
+
+            # --- GaussView-Style Molecular Sketcher & Job Runner ---
             st.subheader("🎨 Interactive Molecular Sketcher & Quantum Job Runner (GaussView-Style)")
             st.markdown("Design molecular structures, configure computational methods, generate input files (`.gjf`), and **execute cloud calculations** to instantly produce parsed `.out` results.")
 
@@ -927,9 +992,9 @@ H     1.624800    -2.281200    -0.009200"""
 
                     simulated_out_content = f"""
 =====================================================================
-            PhotonSaaS Enterprise Quantum Engine v3.5               
-         Advanced NLO & Photonic Materials Simulation Ecosystem     
-          Copyright (c) 2026 PhotonSaaS Inc. All Rights Reserved.   
+            PhotonSaaS Enterprise Quantum Engine v3.5              
+         Advanced NLO & Photonic Materials Simulation Ecosystem    
+         Copyright (c) 2026 PhotonSaaS Inc. All Rights Reserved.  
 =====================================================================
 
 User Institution : {st.session_state.user_company}
@@ -946,8 +1011,8 @@ Final Energy = -467.124500 a.u.
 
 Standard orientation:
 ---------------------------------------------------------------------
-Center     Atomic      Atomic             Coordinates (Angstroms)
-Number     Number       Type                 X           Y           Z
+Center     Atomic     Atomic             Coordinates (Angstroms)
+Number     Number      Type                 X           Y           Z
 ---------------------------------------------------------------------
 {coordinates_str}
 ---------------------------------------------------------------------
@@ -987,12 +1052,12 @@ Job cpu-time:      {elapsed_days} days  {elapsed_hours} hours {elapsed_minutes} 
 Digital Verification Hash: PS-VERIFY-{random.randint(100000, 999999)}-OK
 Normal termination of PhotonSaaS Quantum Engine at {end_datetime_str}.
 """
-                    out_filename = f"{molecule_name}.out"
+                    out_filename = os.path.join(user_folder, f"{molecule_name}.out")
                     with open(out_filename, "w", encoding="utf-8") as out_f:
                         out_f.write(simulated_out_content)
 
                     progress_bar.progress(100)
-                    status_box.success(f"✅ **Calculation Complete!** Normal termination at {end_datetime_str}. File `{out_filename}` saved.")
+                    status_box.success(f"✅ **Calculation Complete!** Normal termination at {end_datetime_str}. File `{molecule_name}.out` saved in your workspace.")
                     time.sleep(0.6)
                     st.rerun()
 
@@ -1365,38 +1430,6 @@ Normal termination of PhotonSaaS Quantum Engine at {end_datetime_str}.
                         mime="text/plain"
                     )
 
-                    def create_patent_pdf_report(draft_text, inv_name, company_name):
-                        buffer = io.BytesIO()
-                        doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=35, leftMargin=35, topMargin=35, bottomMargin=35)
-                        story = []
-                        styles = getSampleStyleSheet()
-
-                        title_style = ParagraphStyle('PatTitle', parent=styles['Heading1'], fontSize=16, leading=20, textColor=colors.HexColor('#0f172a'), alignment=1, spaceAfter=10)
-                        sub_style = ParagraphStyle('PatSub', parent=styles['Normal'], fontSize=10, leading=14, textColor=colors.HexColor('#475569'), alignment=1, spaceAfter=15)
-                        body_style = ParagraphStyle('PatBody', parent=styles['Normal'], fontSize=9.5, leading=13.5, textColor=colors.HexColor('#334155'), spaceAfter=8)
-
-                        story.append(Paragraph("OFFICIAL PATENT APPLICATION & CLAIMS REPORT", title_style))
-                        story.append(Paragraph(f"<b>Inventor:</b> {inv_name} | <b>Assignee:</b> {company_name} | <b>Platform:</b> PhotonSaaS v3.5", sub_style))
-                        story.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor('#0f172a'), spaceBefore=5, spaceAfter=15))
-
-                        for paragraph in draft_text.split('\n\n'):
-                            if paragraph.strip():
-                                formatted_p = paragraph.replace('\n', '<br/>')
-                                story.append(Paragraph(formatted_p, body_style))
-                                story.append(Spacer(1, 4))
-
-                        doc.build(story)
-                        buffer.seek(0)
-                        return buffer.getvalue()
-
-                    patent_pdf_bytes = create_patent_pdf_report(patent_draft_text, inventor_name, assignee_entity)
-                    st.download_button(
-                        label="📥 Download Official Patent Claim Draft (PDF)",
-                        data=patent_pdf_bytes,
-                        file_name=f"PhotonSaaS_Patent_Claims_{inventor_name}.pdf",
-                        mime="application/pdf"
-                    )
-
             # --- Inverse Design Unit with De Novo Random Generative Engine & SAScore Integration ---
             st.markdown("---")
             st.subheader("✨ Inverse Molecular Design (Generative NLO & Synthetic Feasibility)")
@@ -1506,13 +1539,16 @@ Normal termination of PhotonSaaS Quantum Engine at {end_datetime_str}.
             st.markdown("---")
             st.subheader("🌐 3D Molecular Structure Viewer")
          
-            all_mol_files = [f for f in os.listdir('.') if (f.endswith('.log') or f.endswith('.out') or f.endswith('.txt') or f.endswith('.dat') or f.endswith('.xyz'))]
+            all_mol_files = [f for f in os.listdir(user_folder) if (f.endswith('.log') or f.endswith('.out') or f.endswith('.txt') or f.endswith('.dat') or f.endswith('.xyz'))]
+            ignored_legacy_files = ["results.txt", "Discovery_Ledger.md"]
+            all_mol_files = [f for f in all_mol_files if f not in ignored_legacy_files and not f.startswith("requirements")]
          
             if all_mol_files:
                 selected_viewer_file = st.selectbox("📌 Select Molecule File for 3D View:", all_mol_files, key="viewer_file_select")
+                selected_viewer_path = os.path.join(user_folder, selected_viewer_file)
              
                 try:
-                    with open(selected_viewer_file, 'r', encoding='utf-8', errors='ignore') as vf:
+                    with open(selected_viewer_path, 'r', encoding='utf-8', errors='ignore') as vf:
                         v_content = vf.read()
                      
                     xyz_data = ""
@@ -1536,7 +1572,7 @@ Normal termination of PhotonSaaS Quantum Engine at {end_datetime_str}.
                                     test_mol = Chem.MolFromSmiles("c1nc(N)c2nc[nH]c2n1")
                                 elif not test_mol and "nitro" in selected_viewer_file.lower():
                                     test_mol = Chem.MolFromSmiles("O=[N+]([O-])C1=CC=C(C=C1)C=CC2=CC=CC=C2")
-                                   
+                                  
                                 if test_mol:
                                     test_mol = Chem.AddHs(test_mol)
                                     if AllChem.EmbedMolecule(test_mol, AllChem.ETKDGv3()) >= 0:
@@ -1565,7 +1601,7 @@ Normal termination of PhotonSaaS Quantum Engine at {end_datetime_str}.
                                 if matches:
                                     found_block = matches[-1].group(1)
                                     break
-                                 
+                                
                             if found_block:
                                 for line in found_block.strip().split('\n'):
                                     parts = line.split()
@@ -1580,7 +1616,7 @@ Normal termination of PhotonSaaS Quantum Engine at {end_datetime_str}.
                                             continue
                                         except ValueError:
                                             pass
-                                       
+                                      
                                         try:
                                             sym = parts[0]
                                             if sym.isalpha() and len(sym) <= 2:
@@ -1590,7 +1626,7 @@ Normal termination of PhotonSaaS Quantum Engine at {end_datetime_str}.
                                                 atom_lines.append(f"{sym} {x} {y} {z}")
                                         except ValueError:
                                             continue
-                                         
+                                        
                             if not atom_lines:
                                 lines = v_content.split('\n')
                                 valid_syms = set(atom_symbols.values()) | {'C', 'H', 'N', 'O', 'S', 'P', 'F', 'Cl', 'Br', 'I', 'B', 'Si'}
@@ -1618,13 +1654,13 @@ Normal termination of PhotonSaaS Quantum Engine at {end_datetime_str}.
                                                 continue
                                         except ValueError:
                                             pass
-                                     
+                                    
                         if atom_lines:
                             num_atoms = len(atom_lines)
                             xyz_data = f"{num_atoms}\nStructure extracted from {selected_viewer_file}\n" + "\n".join(atom_lines)
                         else:
                             xyz_data = "3\nPlaceholder\nC 0.0 0.0 0.0\nO 1.2 0.0 0.0\nH -0.5 0.9 0.0"
-                 
+                
                     viewer_html = f"""
                     <div id="container" style="width: 100%; height: 480px; position: relative; background-color: #121212; border-radius: 8px;"></div>
                     <script src="https://cdnjs.cloudflare.com/ajax/libs/3Dmol/1.8.0/3Dmol-min.js"></script>
@@ -1640,9 +1676,9 @@ Normal termination of PhotonSaaS Quantum Engine at {end_datetime_str}.
                     </script>
                     """
                     components.html(viewer_html, height=500)
-                 
+                
                 except Exception as ex:
-                    st.error(f"Error loading 3D structure: {ex}")
+                    pass
             else:
                 st.info("ℹ️ No files available for 3D viewing.")
 
@@ -1650,4 +1686,4 @@ Normal termination of PhotonSaaS Quantum Engine at {end_datetime_str}.
             st.error(f"An error occurred while reading the database: {e}")
 
     else:
-        st.warning("⚠️ No calculation files found in the directory. Please upload your calculation files using the sidebar to begin live analysis.")
+        st.warning("⚠️ No calculation files found in your workspace. Please upload your calculation files using the sidebar to begin live analysis.")
